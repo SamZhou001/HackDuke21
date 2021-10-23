@@ -19,7 +19,5 @@ export const retrieveAllPosts = async () => {
         }
         return allData
     });
-    console.log(process.env);
-
     return response;
 }
