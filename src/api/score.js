@@ -1,10 +1,11 @@
 export const getScore = (id, audioPath) => {
+    const { REACT_APP_API_KEY } = process.env;
     const response = fetch(`https://thefluentme.p.rapidapi.com/score/${id}`, {
         "method": "POST",
         "headers": {
             "content-type": "application/json",
             "x-rapidapi-host": "thefluentme.p.rapidapi.com",
-            "x-rapidapi-key": "b8086fddd9mshb3ea1bc9b2b0730p1d8449jsnebc8d7aa02ab"
+            "x-rapidapi-key": REACT_APP_API_KEY
         },
         "body": {
             "audio_provided": audioPath

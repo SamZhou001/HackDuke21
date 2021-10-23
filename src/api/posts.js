@@ -1,9 +1,10 @@
 export const retrieveAllPosts = async () => {
+    const { REACT_APP_API_KEY } = process.env;
     const response = fetch("https://thefluentme.p.rapidapi.com/post?page=1&per_page=10", {
         "method": "GET",
         "headers": {
             "x-rapidapi-host": "thefluentme.p.rapidapi.com",
-            "x-rapidapi-key": "b8086fddd9mshb3ea1bc9b2b0730p1d8449jsnebc8d7aa02ab"
+            "x-rapidapi-key": REACT_APP_API_KEY
         }
     })
     .then(async (response) => {
