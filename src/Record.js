@@ -52,7 +52,6 @@ class Record extends react.Component {
         }
       }
     }
-    console.log(newArr);
     let commonString = [];
     let i = answer.length;
     let j = text.length;
@@ -183,9 +182,7 @@ class Record extends react.Component {
 
 
   render() {
-
-    // Base recording object
-    let object = (
+    return (
       <>
         <Grid container mt={2} direction="column" alignItems='center'>
           <Grid container spacing={2}>
@@ -200,31 +197,24 @@ class Record extends react.Component {
               <audio key="recording-playback" src={this.state.blobURL} controls="controls" />
             </Grid>
             <Grid item xs={12}>
-              {this.state.result !== []? this.state.result : <div></div>}
+              {this.state.result.length !== 0? [...Array(this.props.text.split(' ').length).keys()].map((idx) => 
+                this.state.result[idx]? 
+                <span style={{color: 'green'}}>{this.props.text.split(' ')[idx] + ' '}</span> :
+                <span style={{color: 'red'}}>{this.props.text.split(' ')[idx] + ' '}</span>
+              ) : <div></div>}
             </Grid>
           </Grid>
         </Grid>
-      </>
-    );
-
-
-    // Array of components to return
-    // If Assembly AI is currently being polled, a ReactPolling object will be added to this array
-    let components = [object];
-
-    if(this.state.transcriptId == null && this.state.processing)
-    {
-      components.push(<Box sx={{m: 4}} />);
-      components.push(<p>Uploading audio...</p>);
-    }
-
-    // Add a ReadPolling component if we need to get the text of an audio file recently uploaded to Assembly AI
-    if(this.state.transcriptId != null)
-    {
-      // Add a spacing object
-      components.push(<Box sx={{m: 4}} />);
-      components.push(
-        <ReactPolling
+        {this.state.transcriptId == null && this.state.processing? 
+          <>
+            <Box sx={{m: 4}} />
+            <p>Uploading audio...</p>
+          </>
+          : <div></div>}
+        {this.state.transcriptId != null?
+        <>
+          <Box sx={{m: 4}} />
+          <ReactPolling
           url={'https://api.assemblyai.com/v2/transcript/' + this.state.transcriptId}
           interval= {1000}
           retryCount={3}
@@ -267,10 +257,10 @@ class Record extends react.Component {
             }
           }}
         />
-      )
-    }
-
-    return components;
+        </>
+        : <div></div>}
+      </>
+    );
   }
 }
 
