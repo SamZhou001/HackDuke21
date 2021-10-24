@@ -5,31 +5,25 @@ import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
 import Typography from '@mui/material/Typography';
 
-import { retrieveAllPosts } from '../api/posts';
+import textList from '../text.json';
 import Record from '../Record';
-import TextToSpeech from '../TextToSpeech'
+import TextToSpeech from '../TextToSpeech';
 
 class HomePage extends React.Component{
 
     constructor(props){
         super(props)
         this.state = {
-            allData: [],
+            allData: textList,
             difficulty: '', //the difficulty is nothing before the user has pressed a button
         }
     }
 
-    async componentDidMount() {
-        //const allData = await retrieveAllPosts();
-        const allData = []
-        this.setState({
-            allData,
-        });
-    }
-
     render() {
-        const dataForDifficulty = this.state.allData.filter(data => data.difficulty === this.state.difficulty);
-        const textIndex = Math.floor(Math.random() * dataForDifficulty.length);
+        let displayedText = '';
+        if (this.state.difficulty) {
+            displayedText = this.state.allData[this.state.difficulty];
+        }
         return (
             <Grid container direction="column" alignItems='center'>
                 <Typography variant='h3' mt={5} fontFamily='Apple Chancery'> {'English Pronunciation Helper'} </Typography>
@@ -67,11 +61,11 @@ class HomePage extends React.Component{
                     </Grid>
                     <Grid item xs={12} mx={10}>
                         {this.state.difficulty? <div>
-                            <Typography fontSize={20} fontFamily='Open Sans'> {'Humans have extensively used the coastal zone for fishing, tourism, transport of goods, water treatment, and housing. Agriculture has benefited from the exceptionally fertile grounds due to marine deposits. Approximately three billion people, half the world’s population, live and work within a couple of hundred kilometers of a coastline, notwithstanding the vulnerability of coastal areas to flooding.'} </Typography>
+                            <Typography fontSize={20} fontFamily='Open Sans'> {displayedText} </Typography>
                             <br></br>
-                            <TextToSpeech text="Humans have extensively used the coastal zone for fishing, tourism, transport of goods, water treatment, and housing. Agriculture has benefited from the exceptionally fertile grounds due to marine deposits. Approximately three billion people, half the world’s population, live and work within a couple of hundred kilometers of a coastline, notwithstanding the vulnerability of coastal areas to flooding."></TextToSpeech>
+                            <TextToSpeech text={displayedText}></TextToSpeech>
                             <br></br>
-                            <Record text={'Humans have extensively used the coastal zone for fishing, tourism, transport of goods, water treatment, and housing. Agriculture has benefited from the exceptionally fertile grounds due to marine deposits. Approximately three billion people, half the world’s population, live and work within a couple of hundred kilometers of a coastline, notwithstanding the vulnerability of coastal areas to flooding.'}/>
+                            <Record text={displayedText}/>
                             
                         </div> : <div></div>}
                         
@@ -83,6 +77,3 @@ class HomePage extends React.Component{
 }
 
 export default HomePage;
-
-//dataForDifficulty[textIndex].content
-//dataForDifficulty[textIndex].id
