@@ -20,6 +20,7 @@ function App() {
         </a>
         <Record></Record>
       </header>
+      <Test difficulty='MEDIUM'/>
     </div>
   );
 }
