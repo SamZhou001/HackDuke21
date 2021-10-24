@@ -89,7 +89,8 @@ class Record extends react.Component {
       recordState: RecordState.START,
       blobURL: "",
       transcriptId: null,
-      text: null
+      text: null,
+      result: []
     })
   }
   
