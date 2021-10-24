@@ -19,7 +19,8 @@ class HomePage extends React.Component{
     }
 
     async componentDidMount() {
-        const allData = await retrieveAllPosts();
+        //const allData = await retrieveAllPosts();
+        const allData = []
         this.setState({
             allData,
         });
