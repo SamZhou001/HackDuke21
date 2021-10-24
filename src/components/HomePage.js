@@ -1,7 +1,6 @@
 import React from "react";
 import Test from './test';
-import Button from "@mui/material/Button"
-import ButtonGroup from "@mui/material/ButtonGroup"
+import {Typography, Button, ButtonGroup, Box} from '@mui/material';
 
 function clickMe(){
     alert('You clicked me!')
@@ -23,27 +22,17 @@ class HomePage extends React.Component{
         }
         return (
             <div>
-                <ButtonGroup variant="contained" aria-label="outlined primary button group">
-                    <Button>One</Button>
-                    <Button>Two</Button>
-                    <Button>Three</Button>
-                </ButtonGroup>
+                <Typography variant="h1" component="h1">
+                    Languages R U.S.
+                </Typography>
 
-                <div>
-                    <button onClick = {() => this.setState({difficulty: "EASY"})}>
-                    Easy
-                    </button>
-                </div>
-                <div>
-                    <button onClick = {() => this.setState({difficulty: "MEDIUM"})}>
-                    Medium
-                    </button>
-                </div>
-                <div>
-                    <button onClick = {() => this.setState({difficulty: "HARD"})}>
-                    Hard
-                    </button>
-                </div>
+                <Box sx={{m: 4}} />
+
+                <ButtonGroup size = "large" variant="contained" aria-label="outlined primary button group">
+                    <Button onClick = {() => this.setState({difficulty: "EASY"})}>Easy</Button>
+                    <Button onClick = {() => this.setState({difficulty: "MEDIUM"})}>Medium</Button>
+                    <Button onClick = {() => this.setState({difficulty: "HARD"})}>Hard</Button>
+                </ButtonGroup>
                 {test}
             </div>
         );
