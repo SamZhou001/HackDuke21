@@ -5,7 +5,7 @@ import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
 import Typography from '@mui/material/Typography';
 
-import { retrieveAllPosts } from '../api/posts';
+// import { retrieveAllPosts } from '../api/posts';
 import Record from '../Record';
 import TextToSpeech from '../TextToSpeech'
 
@@ -29,8 +29,8 @@ class HomePage extends React.Component{
     }
 
     render() {
-        const dataForDifficulty = this.state.allData.filter(data => data.difficulty === this.state.difficulty);
-        const textIndex = Math.floor(Math.random() * dataForDifficulty.length);
+        // const dataForDifficulty = this.state.allData.filter(data => data.difficulty === this.state.difficulty);
+        // const textIndex = Math.floor(Math.random() * dataForDifficulty.length);
         return (
             <Grid container direction="column" alignItems='center'>
                 <Typography variant='h3' mt={5} fontFamily='Apple Chancery'> {'English Pronunciation Helper'} </Typography>

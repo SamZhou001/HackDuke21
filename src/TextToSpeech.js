@@ -2,9 +2,6 @@ import React from "react";
 import Button from '@mui/material/Button';
 
 class TextToSpeech extends React.Component {
-    constructor(props){
-        super(props)
-    }
 
     readAloud = () => {
         let speech = new SpeechSynthesisUtterance();
