@@ -9,6 +9,7 @@ export const retrieveAllPosts = async () => {
     })
     .then(async (response) => {
         const res = await response.json();
+        console.log(res)
         const allData = [];
         for (let data of res[1].posts) {
             allData.push({
