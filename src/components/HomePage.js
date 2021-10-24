@@ -20,6 +20,7 @@ class HomePage extends React.Component{
     }
 
     async componentDidMount() {
+        document.title = "English Pronounciation Helper";
         //const allData = await retrieveAllPosts();
         const allData = []
         this.setState({
