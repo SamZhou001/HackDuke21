@@ -1,5 +1,4 @@
 import { initializeApp } from 'firebase/app';
-import { getStorage } from 'firebase/storage';
 const firebaseConfig = {
     apiKey: "AIzaSyCupCaYRHJUAYnBad6joHfwss3FnEDLAtc",
     authDomain: "hackduke21-a252f.firebaseapp.com",
