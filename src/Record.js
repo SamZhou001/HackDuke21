@@ -129,7 +129,7 @@ class Record extends react.Component {
         <Grid container mt={2} direction="column" alignItems='center'>
           <Grid container spacing={2}>
             <Grid item xs={12}>
-              <AudioReactRecorder state={this.state.recordState} onStop={this.onStop} type="audio/mp3" backgroundColor="rgb(255, 255, 255)" foregroundColor="rgb(25, 117, 210)" canvasWidth="300" canvasHeight="180" />
+              <AudioReactRecorder state={this.state.recordState} onStop={this.onStop} type="audio/mp3" backgroundColor="rgb(255, 255, 255)" foregroundColor="rgb(25, 117, 210)" canvasWidth="800" canvasHeight="180" />
             </Grid>
             <Grid item xs={12}>
               <Button key="recording-button-record" onClick={this.start} disabled={!(this.state.recordState === RecordState.NONE || this.state.recordState === RecordState.STOP) || this.state.processing}>Record</Button>
