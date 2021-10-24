@@ -7,6 +7,7 @@ import Typography from '@mui/material/Typography';
 
 import { retrieveAllPosts } from '../api/posts';
 import Record from '../Record';
+import TextToSpeech from '../TextToSpeech'
 
 class HomePage extends React.Component{
 
@@ -68,8 +69,12 @@ class HomePage extends React.Component{
                         {this.state.difficulty? <div>
                             <Typography fontSize={20} fontFamily='Open Sans'> {'efaejiofejaio '.repeat(30)} </Typography>
                             <br></br>
+                            <TextToSpeech text="Humans have extensively used the coastal zone for fishing, tourism, transport of goods, water treatment, and housing. Agriculture has benefited from the exceptionally fertile grounds due to marine deposits. Approximately three billion people, half the world’s population, live and work within a couple of hundred kilometers of a coastline, notwithstanding the vulnerability of coastal areas to flooding."></TextToSpeech>
+                            <br></br>
                             <Record id={'fewfawe'}/>
+                            
                         </div> : <div></div>}
+                        
                     </Grid>
                 </Grid>
             </Grid>
