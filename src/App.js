@@ -1,6 +1,6 @@
 import logo from './logo.svg';
 import './App.css';
-import Test from './components/test';
+import Record from './Record';
 
 function App() {
   return (
@@ -18,6 +18,7 @@ function App() {
         >
           Learn React
         </a>
+        <Record></Record>
       </header>
       <Test difficulty='MEDIUM'/>
     </div>
