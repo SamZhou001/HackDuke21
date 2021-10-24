@@ -3,6 +3,8 @@
 import './Record.css';
 import react from 'react';
 import MicRecorder from 'mic-recorder-to-mp3';
+import Button from '@mui/material/Button';
+import Grid from '@mui/material/Grid';
 
 import firebaseApp from './firebase.js';
 import { getStorage, ref as refStorage, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -159,25 +161,32 @@ class Record extends react.Component {
     if(!this.state.isBlocked)
     {
       recordingUI = [
-        <button key="recording-button-record" onClick={this.start} disabled={this.state.isRecording}>Record</button>,
-        <button key="recording-button-stop" onClick={this.stop} disabled={!this.state.isRecording}>Stop</button>,
-        <audio key="recording-playback" src={this.state.blobURL} controls="controls" />
+        
       ];
     }
     // If the user has not given microhpone access, display a message indicating as such and button to check for permissions again
     else
     {
-      recordingUI = [
-        <p key="recording-error-message">Please go to your browser settings and enable microphone access before recording.</p>,
-        <button key="recording-button-checkPermission" onClick={this.checkPermission}>Check if microphone permission granted</button>
-      ];
-
       // Display the error message if it should be displayed
       if(this.state.checkPermissionFailed)
         recordingUI.push(<p key="recording-check-permission-failed" className="Check-permission-failed">Failed. Microhpone access not yet granted.</p>)
     }
 
-    return recordingUI;
+    return (
+      <>
+        <Grid container mt={2} direction="column" alignItems='center'>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <audio key="recording-playback" src={this.state.blobURL} controls="controls" />
+            </Grid>
+            <Grid item xs={12}>
+              <Button key="recording-button-record" onClick={this.start} disabled={this.state.isRecording}>Record</Button>
+              <Button key="recording-button-stop" onClick={this.stop} disabled={!this.state.isRecording}>Stop</Button>
+            </Grid>
+          </Grid>
+        </Grid>
+      </>
+    );
   }
 }
 
