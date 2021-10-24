@@ -9,10 +9,17 @@ class TextToSpeech extends React.Component {
         window.speechSynthesis.speak(speech)
     }
 
+    stopReadingAloud = () => {
+        window.speechSynthesis.cancel();
+    }
+
     render() {
         return(
-            <Button variant="contained" onClick={this.readAloud}>Read aloud</Button>
-        )
+            <>
+                <Button variant="contained" onClick={this.readAloud} sx={{mr: 2}}>Read aloud</Button>
+                <Button variant="contained" onClick={this.stopReadingAloud}>Stop Reading Aloud</Button>
+            </>
+        );
     }
 }
 
