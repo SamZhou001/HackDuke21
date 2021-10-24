@@ -250,6 +250,8 @@ class Record extends react.Component {
               return (
                 <p style={{width: "50vw", margin: "0 auto"}}>Converting speech to text...</p>
               );
+            } else {
+              return null;
             }
           }}
         />
