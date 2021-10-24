@@ -2,182 +2,211 @@
 
 import './Record.css';
 import react from 'react';
-import MicRecorder from 'mic-recorder-to-mp3';
+import AudioReactRecorder, { RecordState } from 'audio-react-recorder';
+import ReactPolling from "react-polling";
+import {Button, Grid, Box} from '@mui/material';
 
 import firebaseApp from './firebase.js';
 import { getStorage, ref as refStorage, uploadBytes, getDownloadURL } from "firebase/storage";
 import { getDatabase, ref as refDatabase, child, get, set } from "firebase/database";
-
-const Mp3Recorder = new MicRecorder({ bitRate: 128 });
 
 class Record extends react.Component {
 
   constructor(props){
     super(props);
     this.state = {
-      isRecording: false,
-      blobURL: '',
-      isBlocked: false,
-      checkPermissionFailed: false,
+      recordState: RecordState.NONE,
+      blobURL: "",
+      transcriptId: null,
+      text: null,
+      processing: false
     };
-    this.timer = null;
   }
 
   // Start recording
   start = () => {
-    // Make sure microphone permission is given
-    if (this.state.isBlocked) {
-      console.log('Permission Denied (start 1)');
-    } else {
-        // Start recording and update state
-      Mp3Recorder
-        .start()
-        .then(() => {
-          this.setState({ isRecording: true });
-        }).catch((e) => {
-            console.log("Permisson Denied (start 2)");
-            this.getAudioPermissions();
-        });
-    }
-  };
-
-  // Stop recording, upload recording to Firebase, call thefluent API with recording url
+    this.setState({
+      recordState: RecordState.START,
+      blobURL: "",
+      transcriptId: null,
+      text: null
+    })
+  }
+  
+  // Stop recording
   stop = () => {
+    this.setState({
+      recordState: RecordState.STOP
+    })
+  }
+ 
+  // audioData contains blob and blobUrl
+  onStop = (audioData) => {
+    console.log('audioData', audioData)
 
-    // Stop recording
-    Mp3Recorder
-      .stop()
-      .getMp3()
-      .then(([buffer, blob]) => {
-        // Get a buffer and blob that contain the recording
+    this.setState({blobURL: audioData.url, processing: true})
 
-        // Firebase database reference
-        const dbRef = refDatabase(getDatabase(firebaseApp));
-        
-        // Get the recording number from the Firebase database, which will be the filename of this recording
-        get(child(dbRef, "recordingNum")).then((snapshot) => {
-            if (snapshot.exists()) {
-                // recordingNum retreived successfully
-                console.log("recordingNum retrieved successfully: " + snapshot.val());
+    // Firebase database reference
+    const dbRef = refDatabase(getDatabase(firebaseApp));
+    
+    // Get the recording number from the Firebase database, which will be the filename of this recording
+    get(child(dbRef, "recordingNum")).then((snapshot) => {
+        if (snapshot.exists()) {
+            // recordingNum retreived successfully
+            console.log("recordingNum retrieved successfully: " + snapshot.val());
+            
+            // Upload this recording to Firebase storage with filename recordingNum + ".wav"
+            let recordingNum = snapshot.val();
+            const storageRef = refStorage(getStorage(firebaseApp), recordingNum + ".mp3");
+            uploadBytes(storageRef, audioData.blob).then((snapshot) => {
+                // Recording uploaded successfully
+                console.log("Uploaded recording " + recordingNum + " successfully");
                 
-                // Upload this recording to Firebase storage with filename recordingNum + ".mp3"
-                let recordingNum = snapshot.val();
-                const storageRef = refStorage(getStorage(firebaseApp), recordingNum + ".mp3");
-                uploadBytes(storageRef, blob).then((snapshot) => {
-                    // Recording uploaded successfully
-                    console.log("Uploaded recording " + recordingNum + " successfully");
-                    
-                    // Get the url of the uploaded recording to pass to thefluent API
-                    getDownloadURL(storageRef).then((url) => {
-                        // Url retrieved successfully
-                        console.log("Recording url: " + url);
+                // Get the url of the uploaded recording to pass to thefluent API
+                getDownloadURL(storageRef).then((url) => {
+                    // Url retrieved successfully
+                    console.log("Recording url: " + url);
 
-                        // TODO: Call thefluent API
-                    }).catch((error) => {
-                        // Url retrieval failed
-                        console.log("Couldn't get url of recording");
-                    })
-                    
-                    // Increment recordingNum in Firebase database
-                    set(dbRef, {
-                        recordingNum: recordingNum + 1
-                    }).then(() => {
-                        // recordingNum update successful
-                        console.log("recordingNum updated successfully to " + (recordingNum + 1));
-                    }).catch((error) => {
-                        // recordingNum update failed
-                        console.log("recordingNum could not be updated");
+                    // Upload audio to AssemblyAI
+
+                    // Create axios object with AssemblyAI url and headers
+                    const axios = require("axios");
+                    const assembly = axios.create({
+                      baseURL: "https://api.assemblyai.com/v2",
+                      headers: {
+                        authorization: "a1857fd94b0b4671b02ed775f0d3e59b",
+                        "content-type": "application/json",
+                      },
                     });
+                    
+                    // Post to Assembly AI with url to audio file
+                    assembly.post(`/transcript`, {
+                      audio_url: url
+                    })
+                    .then((res) => {
+                      // Audio file uploaded successfully to Assembly AI
+                      console.log(res.data);
+                      
+                      // Update the state with the id of the transcript
+                      // This will add the ReadPolling component to the DOM, starting the polling necessary to get the text
+                      this.setState({ transcriptId: res.data.id });
+
+                    }).catch((err) => console.error(err));
+
+                }).catch((error) => {
+                    // Url retrieval failed
+                    console.log("Couldn't get url of recording");
+                })
+                
+                // Increment recordingNum in Firebase database
+                set(dbRef, {
+                    recordingNum: recordingNum + 1
+                }).then(() => {
+                    // recordingNum update successful
+                    console.log("recordingNum updated successfully to " + (recordingNum + 1));
+                }).catch((error) => {
+                    // recordingNum update failed
+                    console.log("recordingNum could not be updated");
                 });
+            });
 
-            } else{
-                // recordingNum retrieval did not return any value
-                console.log("recordingNum retrieved but not available");
-            }
-        }).catch((error) => {
-            // recordingNum retreival failed
-            console.log("recordingNum not retrieved")
-        });
-
-        // Create url of blob of recording
-        const blobURL = URL.createObjectURL(blob)
-        console.log(blobURL)
-
-        // Update the state with url of blob and stopped recording
-        this.setState({ blobURL, isRecording: false });
-      }).catch((e) => console.log(e));
-  };
-
-  // Get microphone permission when component loads
-  componentDidMount() {
-    this.getAudioPermissions();
+        } else{
+            // recordingNum retrieval did not return any value
+            console.log("recordingNum retrieved but not available");
+        }
+    }).catch((error) => {
+        // recordingNum retreival failed
+        console.log("recordingNum not retrieved")
+    });
   }
 
-  // Check if microphone permission given; if not, display error message
-  checkPermission = () => {
-    // Check if microphone permission given
-    this.getAudioPermissions();
-
-    // If microhpone permission not given, show error message for 3 seconds
-    if(this.state.isBlocked)
-    {
-        // Remove timeout for previous error message (if still showing on screen)
-        clearTimeout(this.timer)
-        
-        // Update the state to show error message
-        this.setState({ checkPermissionFailed: true })
-
-        // Set a timer to hide error message afte 3 seconds
-        this.timer = setTimeout(() => {
-            this.setState({checkPermissionFailed: false});
-        }, 3000);
-    }
-  }
-
-  // Ask the browser to get microphone permission
-  // First time, browser will prompt user to give permission 
-  // If permission not given first time, browser will not show prompt and will just return that permission is not granted
-  getAudioPermissions = () => {
-    navigator.getUserMedia({ audio: true },
-      () => {
-        // Permission granted
-        console.log('Permission Granted');
-        this.setState({ isBlocked: false });
-      },
-      () => {
-        // Permission denied
-        console.log('Permission Denied (get)');
-        this.setState({ isBlocked: true })
-      },
-    );
-  }
 
   render() {
-    let recordingUI;
-    
-    // If the user has given microphone access, show the UI to record audio
-    if(!this.state.isBlocked)
-    {
-      recordingUI = [
-        <button key="recording-button-record" onClick={this.start} disabled={this.state.isRecording}>Record</button>,
-        <button key="recording-button-stop" onClick={this.stop} disabled={!this.state.isRecording}>Stop</button>,
-        <audio key="recording-playback" src={this.state.blobURL} controls="controls" />
-      ];
-    }
-    // If the user has not given microhpone access, display a message indicating as such and button to check for permissions again
-    else
-    {
-      recordingUI = [
-        <p key="recording-error-message">Please go to your browser settings and enable microphone access before recording.</p>,
-        <button key="recording-button-checkPermission" onClick={this.checkPermission}>Check if microphone permission granted</button>
-      ];
 
-      // Display the error message if it should be displayed
-      if(this.state.checkPermissionFailed)
-        recordingUI.push(<p key="recording-check-permission-failed" className="Check-permission-failed">Failed. Microhpone access not yet granted.</p>)
+    // Base recording object
+    let object = (
+      <>
+        <Grid container mt={2} direction="column" alignItems='center'>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <AudioReactRecorder state={this.state.recordState} onStop={this.onStop} type="audio/mp3" backgroundColor="rgb(255, 255, 255)" foregroundColor="rgb(25, 117, 210)" canvasWidth="300" canvasHeight="180" />
+            </Grid>
+            <Grid item xs={12}>
+              <Button key="recording-button-record" onClick={this.start} disabled={!(this.state.recordState === RecordState.NONE || this.state.recordState === RecordState.STOP) || this.state.processing}>Record</Button>
+              <Button key="recording-button-stop" onClick={this.stop} disabled={!(this.state.recordState === RecordState.START) || this.state.processing}>Stop</Button>
+            </Grid>
+            <Grid item xs={12}>
+              <audio key="recording-playback" src={this.state.blobURL} controls="controls" />
+            </Grid>
+          </Grid>
+        </Grid>
+      </>
+    );
+
+
+    // Array of components to return
+    // If Assembly AI is currently being polled, a ReactPolling object will be added to this array
+    let components = [object];
+
+    if(this.state.transcriptId == null && this.state.processing)
+    {
+      components.push(<Box sx={{m: 4}} />);
+      components.push(<p>Uploading audio...</p>);
     }
 
-    return recordingUI;
+    // Add a ReadPolling component if we need to get the text of an audio file recently uploaded to Assembly AI
+    if(this.state.transcriptId != null)
+    {
+      // Add a spacing object
+      components.push(<Box sx={{m: 4}} />);
+      components.push(
+        <ReactPolling
+          url={'https://api.assemblyai.com/v2/transcript/' + this.state.transcriptId}
+          interval= {1000}
+          retryCount={3}
+          onSuccess={(response) => {
+            // A poll/get request was successful
+            console.log("Polling successful")
+            console.log(response)
+
+            // If the processing isn't complete yet, return true to continue polling
+            if(response.status !== "completed")
+              return true;
+            else
+            {
+              // The processing is now complete, so update the state with the text and reset transcriptId to null so this transcript isn't processed repeatedly
+              let text = response.text;
+              this.setState({text, processing: false});
+              // TODO: Get score from text
+              return false;
+            }
+          }}
+          onFailure={() => {
+            // A poll/get request failed
+            console.log('Polling failed')
+          }}
+          method={'GET'}
+          headers={{
+            authorization: "a1857fd94b0b4671b02ed775f0d3e59b",
+            "content-type": "application/json",
+          }}
+          render={({ startPolling, stopPolling, isPolling }) => {
+            // Keep user informed on what is happening
+            if(isPolling) {
+              return (
+                <p style={{width: "50vw", margin: "0 auto"}}>Converting speech to text...</p>
+              );
+            } else {
+              return (
+                <p style={{width: "50vw", margin: "0 auto"}}>Conversion complete. Text is: "{this.state.text}"</p>
+              );
+            }
+          }}
+        />
+      )
+    }
+
+    return components;
   }
 }
 
