@@ -1,0 +1,9 @@
+.Check-permission-failed {
+    color: rgb(184, 27, 27);
+    animation: fadeout 3s ease-in infinite;
+}
+
+@keyframes fadeout {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
