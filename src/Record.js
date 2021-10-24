@@ -19,8 +19,69 @@ class Record extends react.Component {
       blobURL: "",
       transcriptId: null,
       text: null,
-      processing: false
+      processing: false,
+      result: [],
     };
+  }
+
+  preprocess(text) {
+    const textList = text.split(' ');
+    const processedText = textList.map((word) => {
+      const lowerCaseWord = word.toLowerCase();
+      return lowerCaseWord.replace(/[^a-zA-Z0-9]+/g, "")
+    })
+    return processedText;
+  }
+
+  evaluate(answer, text) {
+    const newArr = new Array(answer.length+1).fill(0).map(() => new Array(text.length+1).fill([]));
+    for (let i = 0; i <= answer.length; i++) {
+      for (let j = 0; j <= text.length; j++) {
+        if (i === 0 || j === 0) {
+          newArr[i][j] = [0, 0, 0];
+        } else {
+          if (answer[i-1] === text[j-1]) {
+            newArr[i][j] = [newArr[i-1][j-1][0] + 1, i-1, j-1];
+          } else {
+            if (newArr[i-1][j][0] > newArr[i][j-1][0]) {
+              newArr[i][j] = [newArr[i-1][j][0], i-1, j];
+            } else {
+              newArr[i][j] = [newArr[i][j-1][0], i, j-1];
+            }
+          }
+        }
+      }
+    }
+    console.log(newArr);
+    let commonString = [];
+    let i = answer.length;
+    let j = text.length;
+    while (i !== 0 || j !== 0) {
+      if (newArr[i][j][1] === i-1 && newArr[i][j][2] === j-1) {
+        commonString = [answer[i-1]].concat(commonString);
+      }
+      const tmp = i;
+      i = newArr[i][j][1];
+      j = newArr[tmp][j][2];
+    }
+    let answerPointer = 0;
+    let commonStringPointer = 0;
+    const result = [];
+    while (answerPointer < answer.length && commonStringPointer < commonString.length) {
+      if (answer[answerPointer] === commonString[commonStringPointer]) {
+        result.push(true);
+        answerPointer ++;
+        commonStringPointer ++;
+      } else {
+        result.push(false);
+        answerPointer ++;
+      }
+    };
+    while (answerPointer < answer.length) {
+      result.push(false);
+      answerPointer ++;
+    }
+    return result;
   }
 
   // Start recording
@@ -138,6 +199,9 @@ class Record extends react.Component {
             <Grid item xs={12}>
               <audio key="recording-playback" src={this.state.blobURL} controls="controls" />
             </Grid>
+            <Grid item xs={12}>
+              {this.state.result !== []? this.state.result : <div></div>}
+            </Grid>
           </Grid>
         </Grid>
       </>
@@ -177,7 +241,7 @@ class Record extends react.Component {
               // The processing is now complete, so update the state with the text and reset transcriptId to null so this transcript isn't processed repeatedly
               let text = response.text;
               this.setState({text, processing: false});
-              // TODO: Get score from text
+              this.setState({result: this.evaluate(this.preprocess(this.props.text), this.preprocess(text))});
               return false;
             }
           }}
